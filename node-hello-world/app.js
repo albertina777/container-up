@@ -13,6 +13,10 @@ const customHeadersMiddleware = (req, res, next) => {
 // Use the custom headers middleware
 app.use(customHeadersMiddleware);
 
+app.use('/greeting', greetingRouter); 
+
+app.get('/', (req, res) => { res.send('Hello World'); });
+
 // Collect default metrics
 const collectDefaultMetrics = promClient.collectDefaultMetrics({ timeout: 5000 });
 
