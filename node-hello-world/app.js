@@ -1,38 +1,28 @@
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const promClient = require('prom-client');
+const express = require('express');
+const app = express();
 
-var indexRouter = require('./routes/index');
-var greetingRouter = require('./routes/greeting');
+// Middleware to add custom headers
+const customHeadersMiddleware = (req, res, next) => {
+  const customHeader = 'X-Custom-Header';
+  const customHeaderValue = 'AlbertinaValue';
+  res.setHeader(customHeader, customHeaderValue);
+  next();
+};
 
-var app = express();
+// Use the custom headers middleware
+app.use(customHeadersMiddleware);
 
-// Set custom header for all requests 
+// Collect default metrics
+const collectDefaultMetrics = promClient.collectDefaultMetrics({ timeout: 5000 });
 
-app.use((req, res, next) => { 
-  res.setHeader('X-Custom-Header', 'AlbertinaValue'); 
-  next(); 
-}); 
+// Define the metrics endpoint
+app.get('/metrics', (req, res) => {
+  res.set('Content-Type', promClient.register.contentType);
+  res.end(promClient.register.metrics());
+});
 
-// Use greetingRouter for requests to /greeting 
-
-app.use('/greeting', greetingRouter); 
-
-app.get('/', (req, res) => { res.send('Hello World'); });
-
-// app.use(logger('dev'));
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// app.use('/', indexRouter);
-// app.use('/greeting', greetingRouter);
-
-// app.use((req, res) => {
-//   res.setHeader('X-Custom-Header', 'AlbertinaValue');
-// });
-
-
-module.exports = app;
+// Start the server
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
